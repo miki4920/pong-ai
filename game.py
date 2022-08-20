@@ -64,7 +64,7 @@ class Environment:
         collision = self.account_for_collision()
         if collision is not None:
             self.ball.velocity.x = -self.ball.velocity.x
-            self.ball.velocity.y += collision * 10
+            self.ball.velocity.y = min(collision * 10 + self.ball.velocity.y, Config.BALL_MAX_SPEED)
         self.ball.rectangle.center += self.ball.velocity
         if self.ball.rectangle.bottom >= Config.SCREEN_HEIGHT or self.ball.rectangle.top <= 0:
             self.ball.velocity.y = -self.ball.velocity.y
