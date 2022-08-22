@@ -44,7 +44,8 @@ class Environment:
     def account_for_collision(self):
         for player in self.players:
             if player.rectangle.colliderect(self.ball.rectangle):
-                player.score += 1
+                # Rewards AI algorithm for successfully bouncing the ball
+                player.score += Config.PLAYER_SCORE_FOR_BOUNCE
                 return (self.ball.rectangle.centery - player.rectangle.centery) / (Config.PLAYER_SIZE[1] // 2)
 
     @staticmethod
