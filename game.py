@@ -37,21 +37,35 @@ class Player(GameObject):
 
 class Environment:
     def __init__(self):
-        self.players = [Player((0, Config.SCREEN_HEIGHT//2 - 10)), Player((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT//2))]
-        self.ball = Ball((Config.SCREEN_WIDTH//2, Config.SCREEN_HEIGHT//2))
+        self.players = [Player((0, Config.SCREEN_HEIGHT // 2 - 10)),
+                        Player((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT // 2))]
+        self.ball = Ball((Config.SCREEN_WIDTH // 2, Config.SCREEN_HEIGHT // 2))
 
     def account_for_collision(self):
         for player in self.players:
             if player.rectangle.colliderect(self.ball.rectangle):
                 player.score += 1
-                return (self.ball.rectangle.centery - player.rectangle.centery) / (Config.PLAYER_SIZE[1]//2)
+                return (self.ball.rectangle.centery - player.rectangle.centery) / (Config.PLAYER_SIZE[1] // 2)
+
+    @staticmethod
+    def account_for_y_collision(game_object):
+        """
+        Prevents game_object from going out-of-bounds in Y-axis by correcting its position.
+        :param game_object: Object of type GameObject.
+        """
+        min_y = 0
+        max_y = game_display.get_height()
+        if game_object.rectangle.bottom >= max_y:
+            game_object.rectangle.bottom = max_y - 1
+        if game_object.rectangle.top <= min_y:
+            game_object.rectangle.top = min_y + 1
 
     def get_keys(self):
         keys = pygame.key.get_pressed()
-        if keys[KeyBinds.UP_P1] or keys[KeyBinds.DOWN_P1]:
-            self.update_player(self.players[0], [keys[KeyBinds.UP_P1], keys[KeyBinds.DOWN_P1]])
-        if keys[KeyBinds.UP_P2] or keys[KeyBinds.DOWN_P2]:
-            self.update_player(self.players[1], [keys[KeyBinds.UP_P2], keys[KeyBinds.DOWN_P2]])
+        if keys[KeyBinds.UP_PLAYER_1] or keys[KeyBinds.DOWN_PLAYER_1]:
+            self.update_player(self.players[0], [keys[KeyBinds.UP_PLAYER_1], keys[KeyBinds.DOWN_PLAYER_1]])
+        if keys[KeyBinds.UP_PLAYER_2] or keys[KeyBinds.DOWN_PLAYER_2]:
+            self.update_player(self.players[1], [keys[KeyBinds.UP_PLAYER_2], keys[KeyBinds.DOWN_PLAYER_2]])
 
     @staticmethod
     def update_player(player, keys):
@@ -64,7 +78,7 @@ class Environment:
         collision = self.account_for_collision()
         if collision is not None:
             self.ball.velocity.x = -self.ball.velocity.x
-            self.ball.velocity.y = min(collision * 10 + self.ball.velocity.y, Config.BALL_MAX_SPEED)
+            self.ball.velocity.y = collision * 10 + self.ball.velocity.y
         self.ball.rectangle.center += self.ball.velocity
         if self.ball.rectangle.bottom >= Config.SCREEN_HEIGHT or self.ball.rectangle.top <= 0:
             self.ball.velocity.y = -self.ball.velocity.y
