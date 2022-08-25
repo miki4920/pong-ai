@@ -12,7 +12,7 @@ class Config:
     SCREEN_WIDTH = 500
     SCREEN_HEIGHT = 500
 
-    PLAYER_SIZE = (10, 250)
+    PLAYER_SIZE = (30, 150)
     PLAYER_COLOUR = (255, 128, 128)
     PLAYER_SPEED = 5
     PLAYER_SCORE_FOR_BOUNCE = 1
@@ -20,6 +20,7 @@ class Config:
     BALL_SIZE = (30, 30)
     BALL_COLOUR = (100, 100, 100)
     BALL_SPEED = 5
+    COLLISION_STRENGTH = 10
     FPS = 60
 
 
