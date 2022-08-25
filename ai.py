@@ -23,7 +23,6 @@ def evaluate_genomes(genomes, config):
             break
         to_delete = []
         for i, player_group in enumerate(environment.player_groups):
-
             environment.update_ball(i)
             ball = player_group["ball"]
             fitness = 0
