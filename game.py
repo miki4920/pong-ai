@@ -1,7 +1,8 @@
 import pygame
 
 from pygame import display, Surface
-from config import KeyBinds, Config
+
+from config import Config
 
 pygame.init()
 game_display = display.set_mode((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT), pygame.RESIZABLE)
@@ -27,27 +28,37 @@ class Ball(GameObject):
     def __init__(self, positions, size=Config.BALL_SIZE, colour=Config.BALL_COLOUR, speed=Config.BALL_SPEED):
         super().__init__(positions, size, colour)
         self.velocity.x = speed
+        self.velocity.y = 5
+        self.previous_collision = None
 
 
 class Player(GameObject):
     def __init__(self, positions, size=Config.PLAYER_SIZE, colour=Config.PLAYER_COLOUR):
         super().__init__(positions, size, colour)
-        self.dead = False
         self.score = 0
 
 
 class Environment:
     def __init__(self):
-        self.players = [Player((0, Config.SCREEN_HEIGHT // 2)),
-                        Player((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT // 2))]
-        self.ball = Ball((Config.SCREEN_WIDTH // 2, Config.SCREEN_HEIGHT // 2))
+        self.player_groups = []
 
-    def collision_between_players_and_ball(self):
-        for player in self.players:
-            if player.rectangle.colliderect(self.ball.rectangle):
-                player.score += Config.PLAYER_SCORE_FOR_BOUNCE
-                # TODO: Better system for determining angle of bounce
-                return (self.ball.rectangle.centery - player.rectangle.centery) / (Config.PLAYER_SIZE[1])
+    def create_player_group(self):
+        self.player_groups.append({"players": [Player((0, Config.SCREEN_HEIGHT // 2)),
+                                               Player((Config.SCREEN_WIDTH, Config.SCREEN_HEIGHT // 2))],
+                                   "ball": Ball((Config.SCREEN_WIDTH // 2, Config.SCREEN_HEIGHT // 2)), "dead": False})
+
+    @staticmethod
+    def collision_between_players_and_ball(player_group):
+        ball = player_group["ball"]
+        for player in player_group["players"]:
+            if ball.rectangle.colliderect(player.rectangle):
+                if ball.previous_collision is player:
+                    player_group["dead"] = True
+                else:
+                    player.score += 1
+                    ball.previous_collision = player
+                return (player_group["ball"].rectangle.centery - player.rectangle.centery) / (
+                    Config.PLAYER_SIZE[1]) * Config.COLLISION_STRENGTH
 
     @staticmethod
     def collision_with_top(game_object, change):
@@ -65,13 +76,6 @@ class Environment:
             return True
         return False
 
-    def get_keys(self):
-        keys = pygame.key.get_pressed()
-        if keys[KeyBinds.UP_PLAYER_1] or keys[KeyBinds.DOWN_PLAYER_1]:
-            self.update_player(self.players[0], [keys[KeyBinds.UP_PLAYER_1], keys[KeyBinds.DOWN_PLAYER_1]])
-        if keys[KeyBinds.UP_PLAYER_2] or keys[KeyBinds.DOWN_PLAYER_2]:
-            self.update_player(self.players[1], [keys[KeyBinds.UP_PLAYER_2], keys[KeyBinds.DOWN_PLAYER_2]])
-
     def update_player(self, player, keys):
         change = 0
         if keys[0] >= 0.5:
@@ -82,31 +86,25 @@ class Environment:
                 change = Config.PLAYER_SPEED
         player.rectangle.centery += change
 
-    def update_ball(self):
-        collision = self.collision_between_players_and_ball()
+    def update_ball(self, index):
+        player_group = self.player_groups[index]
+        ball = player_group["ball"]
+        collision = self.collision_between_players_and_ball(player_group)
         if collision is not None:
-            self.ball.velocity.x = -self.ball.velocity.x
-            self.ball.velocity.y = collision * 10 + self.ball.velocity.y
-        if self.ball.velocity.y > 0 and self.collision_with_bottom(self.ball, self.ball.velocity.y):
-            self.ball.velocity.y = -self.ball.velocity.y
-        elif self.ball.velocity.y < 0 and self.collision_with_top(self.ball, self.ball.velocity.y):
-            self.ball.velocity.y = -self.ball.velocity.y
-        else:
-            self.ball.rectangle.center += self.ball.velocity
+            ball.velocity.x = -ball.velocity.x
+            ball.velocity.y = collision + ball.velocity.y
+        if ball.velocity.y > 0 and self.collision_with_bottom(ball, ball.velocity.y):
+            ball.velocity.y = -ball.velocity.y
+        elif ball.velocity.y < 0 and self.collision_with_top(ball, ball.velocity.y):
+            ball.velocity.y = -ball.velocity.y
+        ball.rectangle.center += ball.velocity
+        if ball.rectangle.centerx > game_display.get_width() or ball.rectangle.centerx < 0:
+            player_group["dead"] = True
 
     def render_environment(self):
         game_display.fill((0, 0, 0))
-        for player in self.players:
-            game_display.blit(*player.draw())
-        game_display.blit(*self.ball.draw())
+        for player_group in self.player_groups:
+            for player in player_group["players"]:
+                game_display.blit(*player.draw())
+            game_display.blit(*player_group["ball"].draw())
         display.update()
-
-
-if __name__ == "__main__":
-    environment = Environment()
-    while True:
-        environment.update_ball()
-        environment.get_keys()
-        environment.render_environment()
-        pygame.event.pump()
-        frames_per_second.tick(60)
