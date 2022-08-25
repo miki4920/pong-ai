@@ -14,7 +14,7 @@ class Config:
 
     PLAYER_SIZE = (30, 125)
     PLAYER_COLOUR = (255, 128, 128)
-    PLAYER_SPEED = 5
+    PLAYER_SPEED = 10
     PLAYER_SCORE_FOR_BOUNCE = 1
 
     BALL_SIZE = (30, 30)
