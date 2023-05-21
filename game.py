@@ -81,7 +81,7 @@ class Environment:
         if keys[0] >= 0.5:
             if not self.collision_with_top(player, -Config.PLAYER_SPEED):
                 change = -Config.PLAYER_SPEED
-        if keys[1] >= 0.5:
+        elif keys[1] >= 0.5:
             if not self.collision_with_bottom(player, Config.PLAYER_SPEED):
                 change = Config.PLAYER_SPEED
         player.rectangle.centery += change
