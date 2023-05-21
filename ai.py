@@ -3,12 +3,8 @@ import pygame
 
 from game import Environment, frames_per_second
 
-imgarray = []
-xpos_end = 0
-
 
 def evaluate_genomes(genomes, config):
-    global environment, genomes_list, nets
     environment = Environment()
     genomes_list = []
     nets = []
